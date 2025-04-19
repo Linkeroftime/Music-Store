@@ -1,29 +1,49 @@
-// app/product/[id]/page.js
+"use client"
+import { useEffect, useState } from "react";
+import { useCart } from "../../context/CartContext";
+import Headbar from "../../components/headbar.js";
+import { useRouter } from "next/navigation";
 
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
 
-export default async function ProductPage({ params }) {
-  const { id } = params;
+export default function ProductPage({ params }) {
+  const [product, setProduct] = useState(null);
+  const { addToCart } = useCart();
+  const router = useRouter();
 
-  // Fetch the product by its ID
-  const product = await prisma.product.findUnique({
-    where: {
-      id: parseInt(id),
-    },
-  });
+  useEffect(() => {
+    // Fetch product data based on the product ID in the URL
+    const fetchProduct = async () => {
+      const res = await fetch(`/api/products/${params.id}`);
+      const data = await res.json();
+      setProduct(data);
+    };
 
-  if (!product) {
-    return <div>Product not found</div>;
-  }
+      fetchProduct();
+    }, [params.id]);
+
+    const handleAddToCart = () => {
+      if (product) {
+        addToCart(product);
+        router.push("/cart")
+      }
+    };
+
+    if (!product) {
+      return <p>Loading...</p>;
+    }
 
   return (
-    <div className="p-6">
-      <img src={product.image} alt={product.name} className="object-contain max-w-full h-auto" />
-      <h1 className="text-2xl font-semibold mt-4">{product.name}</h1>
-      <p className="text-gray-600">{product.price}</p>
-      <button className="mt-4 bg-blue-500 text-white p-2 rounded-md">Buy Now</button>
+    <div>
+      <Headbar />
+      <div>
+      <h1>{product.name}</h1>
+      <p>{product.description}</p>
+      <p>${product.price}</p>
+      <button onClick={handleAddToCart} className="bg-blue-500 text-white px-4 py-2 rounded">
+        Add to Cart
+      </button>
+      </div>
     </div>
   );
 }

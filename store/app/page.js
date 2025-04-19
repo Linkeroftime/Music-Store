@@ -1,54 +1,30 @@
-"use client"
+"use client";
+import { useEffect, useState } from "react";
+import ProductCard from "./components/ProductCard";
+import Headbar from "./components/headbar";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import Header from './components/headbar.js';
-
-export default function Home() {
+export default function HomePage() {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/products')
+    fetch("/api/products")
       .then((res) => res.json())
-      .then((data) => {
-        setProducts(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
+      .then((data) => setProducts(data))
+      .catch((err) => console.error("Error fetching products:", err));
   }, []);
-
-  if (loading) return <div>Loading...</div>;
 
   return (
     <div>
-      <Header />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-10">
-        {products.length === 0 ? (
-          <div>No products found</div>
-        ) : (
+      <Headbar />
+      <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {products.length > 0 ? (
           products.map((product) => (
-            <div key={product.id} className="relative p-4 shadow-lg rounded-lg border text-center flex flex-col justify-center items-center h-screen">
-              <Link href={`/product/${product.id}`}>
-              <img
-                src={product.image}
-                alt={product.name}
-                className="h-auto object-cover max-w-full h-auto rounded-md mx-auto"
-              />
-              </Link>
-              <div className="absolute bottom-0 left-0 right-0 text-center p-4 bg-white">
-                <h3 className="text-lg font-semibold mt-2 text-black">
-                  <Link href={`/product/${product.id}`}>{product.name}</Link>
-                </h3>
-                <p className="text-black">{product.price}</p>
-            </div>
-          </div>
+            <ProductCard key={product.id} product={product} />
           ))
+        ) : (
+          <p>No products available.</p>
         )}
       </div>
-  </div>
+    </div>
   );
 }
